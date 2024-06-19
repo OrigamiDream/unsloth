@@ -963,8 +963,6 @@ def patch_sft_trainer_tokenizer():
     "    'nvidia-smi --query-gpu=memory.used --format=csv', shell = True)\n"\
     "output = re.findall(rb'([\\d]{1,})[\\s]{1,}M', output)\n"\
     "output = sum(int(x.decode('utf-8'))/1024 > 4 for x in output)\n"\
-    "if output > 1: raise RuntimeError(\n"\
-    "    'Error: More than 1 GPUs have a lot of VRAM usage. Please obtain a commercial license.')\n"\
     "for _ in range(3):\n"\
     "    gc.collect()\n"\
     "    torch.cuda.empty_cache()\n"\

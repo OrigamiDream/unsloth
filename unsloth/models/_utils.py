@@ -372,11 +372,6 @@ def prepare_n_gradient_checkpoints(
 pass
 
 
-# Unsloth only works on NVIDIA GPUs for now
-device_ids = os.environ.get("CUDA_VISIBLE_DEVICES", "0") + ","
-device = device_ids[:device_ids.find(',')] # Unsloth only works on NVIDIA GPUs for now
-device = f"cuda:{device if device.isdigit() else '0'}"
-
 class Unsloth_Offloaded_Gradient_Checkpointer(torch.autograd.Function):
     """
     Saves VRAM by smartly offloading to RAM.
@@ -398,7 +393,7 @@ class Unsloth_Offloaded_Gradient_Checkpointer(torch.autograd.Function):
     @torch.cuda.amp.custom_bwd
     def backward(ctx, dY):
         (hidden_states,) = ctx.saved_tensors
-        hidden_states = hidden_states.to(device, non_blocking = True).detach()
+        hidden_states = hidden_states.to('cuda', non_blocking = True).detach()
         hidden_states.requires_grad = True
         with torch.enable_grad():
             (output,) = ctx.forward_function(hidden_states, *ctx.args)
@@ -435,25 +430,6 @@ BitsAndBytesConfig__init__ = BitsAndBytesConfig__init__.replace(
     "__init__",
     "_BitsAndBytesConfig__init__",
 )
-
-def _prepare_backend(
-    self, cpu: bool = False, sagemaker_dp = False, backend: str = None,
-) -> tuple[str, DistributedType]:
-    return None, DistributedType.NO
-pass
-import accelerate.state
-accelerate.state.PartialState._prepare_backend = _prepare_backend
-
-import accelerate.accelerator
-prepare = inspect.getsource(accelerate.accelerator.Accelerator.prepare)
-prepare = prepare.split("\n")
-spaces = prepare[0].find("def")
-prepare = "\n".join(x[spaces:] for x in prepare)
-x = "for obj in args:"
-s = " "*spaces
-prepare = prepare.replace(x, f'self.state.distributed_type = DistributedType.NO\n{s}{x}', 1)
-exec(prepare, globals())
-accelerate.accelerator.Accelerator.prepare = prepare
 
 exec(BitsAndBytesConfig__init__, globals())
 

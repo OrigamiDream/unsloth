@@ -27,24 +27,7 @@ for module in MODULES_TO_CHECK:
     pass
 pass
 
-# Currently only supports 1 GPU, or else seg faults will occur.    
-if "CUDA_VISIBLE_DEVICES" in os.environ:
-    os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-    devices = os.environ["CUDA_VISIBLE_DEVICES"]
-    # Check if there are multiple cuda devices set in env
-    if not devices.isdigit():
-        first_id = devices.split(",")[0]
-        warnings.warn(
-            f"Unsloth: 'CUDA_VISIBLE_DEVICES' is currently {devices} \n"\
-            "Multiple CUDA devices detected but we require a single device.\n"\
-            f"We will override CUDA_VISIBLE_DEVICES to first device: {first_id}."
-        )
-        os.environ["CUDA_VISIBLE_DEVICES"] = str(first_id)
-else:
-    # warnings.warn("Unsloth: 'CUDA_VISIBLE_DEVICES' is not set. We shall set it ourselves.")
-    os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-pass
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 
 # Reduce VRAM usage by reducing fragmentation
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"

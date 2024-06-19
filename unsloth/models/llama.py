@@ -1208,8 +1208,6 @@ class FastLlamaModel:
             'nvidia-smi --query-gpu=memory.used --format=csv', shell = True)
         output = re.findall(rb'([\\d]{1,})[\\s]{1,}M', output)
         output = sum(int(x.decode('utf-8'))/1024 > 4 for x in output)
-        if output > 1: raise RuntimeError(
-            'Error: More than 1 GPUs have a lot of VRAM usage. Please obtain a commercial license.')
         for _ in range(3):
             gc.collect()
             torch.cuda.empty_cache()"""
